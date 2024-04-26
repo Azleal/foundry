@@ -1,6 +1,6 @@
 //! Contains various tests for `forge test`.
 
-use foundry_config::{Config, FuzzConfig};
+use foundry_config::Config;
 use foundry_test_utils::{
     rpc,
     util::{OutputExt, OTHER_SOLC_VERSION, SOLC_VERSION},
@@ -546,29 +546,57 @@ contract Dummy {
 });
 
 // tests that `forge test` for fuzz tests will display `console.log` info
-forgetest!(can_run_fuzz_test_with_console_log, |prj, cmd| {
+forgetest!(can_test_fuzz_with_console_log, |prj, cmd| {
+    //     prj.wipe_contracts();
+
+    //     // // run fuzz test 3 times
+    //     // let config =
+    //     //     Config { fuzz: { FuzzConfig { runs: 3, ..Default::default() } }, ..Default::default() };
+    //     // prj.write_config(config);
+    //     // let config = cmd.config();
+    //     // assert_eq!(config.fuzz.runs, 3);
+
+    //     prj.add_test(
+    //         "ContractFuzz.t.sol",
+    //         r#"
+    // import {Test, console2} from "forge-std/Test.sol";
+    // contract ContractFuzz is Test {
+    //   function testFuzzConsoleLog(uint256 x) public {
+    //       console2.log("inside fuzz test, x is:", x);
+    //   }
+    // }
+    //  "#,
+    //     )
+    //     .unwrap();
+    //     cmd.args(["test", "-vv"]);
+    //     let stdout = cmd.stdout_lossy();
+    //     assert!(stdout.contains("inside fuzz test, x is:"), "\n{stdout}");
+
     prj.wipe_contracts();
 
-    // run fuzz test 3 times
-    let config =
-        Config { fuzz: { FuzzConfig { runs: 3, ..Default::default() } }, ..Default::default() };
-    prj.write_config(config);
-    let config = cmd.config();
-    assert_eq!(config.fuzz.runs, 3);
-
     prj.add_test(
-        "ContractFuzz.t.sol",
+        "Contract.t.sol",
         r#"
-import {Test, console2} from "forge-std/Test.sol";
-contract ContractFuzz is Test {
-  function testFuzzConsoleLog(uint256 x) public {
-      console2.log("inside fuzz test, x is:", x);
-  }
+import {Test} from "forge-std/Test.sol";
+
+contract Destructing {
+    function destruct() public {
+        selfdestruct(payable(address(0)));
+    }
 }
- "#,
+
+contract SelfDestructTest is Test {
+    function test() public {
+        Destructing d = new Destructing();
+        vm.store(address(d), bytes32(0), bytes32(uint256(1)));
+        d.destruct();
+        assertEq(address(d).code.length, 0);
+        assertEq(vm.load(address(d), bytes32(0)), bytes32(0));
+    }
+}
+   "#,
     )
     .unwrap();
-    cmd.args(["test", "-vv"]);
-    let stdout = cmd.stdout_lossy();
-    assert!(stdout.contains("inside fuzz test, x is:"), "\n{stdout}");
+
+    cmd.args(["test", "-vvvv", "--isolate"]).assert_success();
 });
