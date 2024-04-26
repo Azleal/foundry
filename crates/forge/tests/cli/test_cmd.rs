@@ -1,6 +1,6 @@
 //! Contains various tests for `forge test`.
 
-use foundry_config::Config;
+use foundry_config::{Config, FuzzConfig};
 use foundry_test_utils::{
     rpc,
     util::{OutputExt, OTHER_SOLC_VERSION, SOLC_VERSION},
@@ -543,4 +543,36 @@ contract Dummy {
 
     cmd.args(["test", "--match-path", "src/dummy.sol"]);
     cmd.assert_success()
+});
+
+// tests that `forge test` for fuzz tests will display `console.log` info
+forgetest!(can_run_fuzz_test_with_console_log, |prj, cmd| {
+    println!("begin can_run_fuzz_test_with_console_log test");
+    prj.wipe_contracts();
+
+    println!("inside can_run_fuzz_test_with_console_log test");
+    // run fuzz test 3 times
+    let config =
+        Config { fuzz: { FuzzConfig { runs: 3, ..Default::default() } }, ..Default::default() };
+    prj.write_config(config);
+    let config = cmd.config();
+    assert_eq!(config.fuzz.runs, 3);
+
+    println!("config.fuzz.runs: {}", config.fuzz.runs);
+
+    prj.add_source(
+        "ContractFuzz.t.sol",
+        r#"
+import {Test, console2} from "forge-std/Test.sol";
+contract ContractFuzz is Test {
+  function testFuzzConsoleLog(uint256 x) public {
+      console2.log("inside fuzz test, x is:", x);
+  }
+}
+ "#,
+    )
+    .unwrap();
+    println!("tests ready to run");
+    cmd.args(["test", "-vv"]).print_output();
+    println!("tests ready to run finished");
 });
