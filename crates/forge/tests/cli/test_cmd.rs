@@ -547,8 +547,7 @@ contract Dummy {
 
 // tests that `forge test` for fuzz tests will display `console.log` info
 forgetest!(can_test_fuzz_with_console_log, |prj, cmd| {
-    prj.insert_ds_test();
-    prj.insert_console();
+    prj.wipe_contracts();
 
     // // run fuzz test 3 times
     // let config =
@@ -559,12 +558,12 @@ forgetest!(can_test_fuzz_with_console_log, |prj, cmd| {
 
     prj.add_test(
         "ContractFuzz.t.sol",
-        r#"
-    import "./test.sol";
-    import "./console.sol";
-    contract ContractFuzz is DSTest {
+        r#"pragma solidity 0.8.24;
+        import {Test, console2} from "forge-std/Test.sol";
+
+    contract ContractFuzz is Test {
       function testFuzzConsoleLog(uint256 x) public {
-          console.log("inside fuzz test, x is:", x);
+        console2.log("inside fuzz test, x is:", x);
       }
     }
      "#,
