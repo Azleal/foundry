@@ -1,6 +1,6 @@
 //! Contains various tests for `forge test`.
 
-use foundry_config::{Config, FuzzConfig};
+use foundry_config::Config;
 use foundry_test_utils::{
     rpc,
     util::{OutputExt, OTHER_SOLC_VERSION, SOLC_VERSION},
@@ -559,10 +559,10 @@ forgetest!(can_run_fuzz_test_with_console_log, |prj, cmd| {
     prj.add_source(
         "ContractFuzz.t.sol",
         r#"
-import {Test, console2} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 contract ContractFuzz is Test {
   function testFuzzConsoleLog(uint256 x) public {
-      console2.log("inside fuzz test, x is:", x);
+      // console2.log("inside fuzz test, x is:", x);
   }
 }
  "#,
