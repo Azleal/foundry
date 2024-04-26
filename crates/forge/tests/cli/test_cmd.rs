@@ -546,7 +546,7 @@ contract Dummy {
 });
 
 // tests that `forge test` for fuzz tests will display `console.log` info
-forgetest!(can_test_fuzz_with_console_log, |prj, cmd| {
+forgetest_init!(can_test_fuzz_with_console_log, |prj, cmd| {
     prj.wipe_contracts();
 
     // // run fuzz test 3 times
