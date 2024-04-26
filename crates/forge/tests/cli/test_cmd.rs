@@ -560,8 +560,8 @@ forgetest!(can_test_fuzz_with_console_log, |prj, cmd| {
     prj.add_test(
         "ContractFuzz.t.sol",
         r#"
-    import from "./test.sol";
-    import from "./console.sol";
+    import "./test.sol";
+    import "./console.sol";
     contract ContractFuzz is DSTest {
       function testFuzzConsoleLog(uint256 x) public {
           console.log("inside fuzz test, x is:", x);
