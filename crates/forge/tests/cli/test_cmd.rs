@@ -547,18 +547,14 @@ contract Dummy {
 
 // tests that `forge test` for fuzz tests will display `console.log` info
 forgetest!(can_run_fuzz_test_with_console_log, |prj, cmd| {
-    println!("begin can_run_fuzz_test_with_console_log test");
     prj.wipe_contracts();
 
-    println!("inside can_run_fuzz_test_with_console_log test");
     // run fuzz test 3 times
     let config =
         Config { fuzz: { FuzzConfig { runs: 3, ..Default::default() } }, ..Default::default() };
     prj.write_config(config);
     let config = cmd.config();
     assert_eq!(config.fuzz.runs, 3);
-
-    println!("config.fuzz.runs: {}", config.fuzz.runs);
 
     prj.add_source(
         "ContractFuzz.t.sol",
@@ -572,7 +568,7 @@ contract ContractFuzz is Test {
  "#,
     )
     .unwrap();
-    println!("tests ready to run");
-    cmd.args(["test", "-vv"]).print_output();
-    println!("tests ready to run finished");
+    cmd.args(["test", "-vv"]);
+    let stdout = cmd.stdout_lossy();
+    assert!(stdout.contains("inside fuzz test, x is:"), "\n{stdout}");
 });
